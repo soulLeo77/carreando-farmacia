@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
+const dayjs = require('dayjs');
 const db = require('../connection/db');
 
 router.get('/', async (req, res) => {
@@ -42,10 +43,9 @@ router.get('/:id', async (req, res) => {
 
 router.post('/',
     [
-        body('detalles').isArray({ min: 1 }).withMessage('Los detalles de la venta son obligatorios'),
-        body('detalles.*.id_producto').isInt().withMessage('El ID del producto debe ser un número entero'),
-        body('detalles.*.cantidad').isInt({ min: 1 }).withMessage('La cantidad debe ser un número entero positivo'),
-        body('detalles.*.valor_venta').isDecimal().withMessage('El valor de la venta debe ser un número decimal')
+        body('fecha_venta')
+            .notEmpty().withMessage('La fecha de venta es obligatoria')
+            .isDate().withMessage('La fecha de venta debe estar en formato YYYY-MM-DD')
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -53,37 +53,15 @@ router.post('/',
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { detalles } = req.body;
+        let { fecha_venta } = req.body;
 
         try {
-            // Crear la venta
-            const [ventaResult] = await db.query('INSERT INTO venta () VALUES ()');
+            fecha_venta = dayjs(fecha_venta, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+            const [ventaResult] = await db.query('INSERT INTO venta (fecha_venta) VALUES (?)', [fecha_venta]);
             const id_venta = ventaResult.insertId;
 
-            // Insertar los detalles de la venta
-            for (const detalle of detalles) {
-                const { id_producto, cantidad, valor_venta } = detalle;
-
-                // Verificar stock del producto
-                const [producto] = await db.query('SELECT stock FROM producto WHERE id_producto = ?', [id_producto]);
-                if (producto.length === 0) {
-                    return res.status(404).json({ error: `Producto con ID ${id_producto} no encontrado` });
-                }
-                if (producto[0].stock < cantidad) {
-                    return res.status(400).json({ error: `Stock insuficiente para el producto con ID ${id_producto}` });
-                }
-
-                // Reducir el stock del producto
-                await db.query('UPDATE producto SET stock = stock - ? WHERE id_producto = ?', [cantidad, id_producto]);
-
-                // Insertar detalle
-                await db.query(
-                    'INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES (?, ?, ?, ?)',
-                    [id_venta, id_producto, cantidad, valor_venta]
-                );
-            }
-
-            res.status(201).json({ mensaje: 'Venta creada exitosamente', id_venta });
+            res.status(201).json({ id_venta, mensaje: 'Venta creada exitosamente' });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error al crear la venta' });
@@ -91,14 +69,40 @@ router.post('/',
     }
 );
 
-// Eliminar una venta
+router.patch('/:id',
+    [
+        body('fecha_venta')
+            .notEmpty().withMessage('La fecha de venta es obligatoria')
+            .isDate().withMessage('La fecha de venta debe estar en formato DD/MM/YYYY o YYYY-MM-DD')
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        let { fecha_venta } = req.body;
+        const id = req.params.id;
+
+        try {
+            fecha_venta = dayjs(fecha_venta).format('YYYY-MM-DD');
+
+            const [result] = await db.query('UPDATE venta SET fecha_venta = ? WHERE id_venta = ?', [fecha_venta, id]);
+            if (result.affectedRows === 0) return res.status(404).json({ error: 'Venta no encontrada' });
+
+            res.status(200).json({ id_venta: id, fecha_venta });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error al actualizar la venta' });
+        }
+    }
+);
+
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
     try {
-        // Eliminar detalles de la venta
         await db.query('DELETE FROM venta_detalle WHERE id_venta = ?', [id]);
 
-        // Eliminar la venta
         const [result] = await db.query('DELETE FROM venta WHERE id_venta = ?', [id]);
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Venta no encontrada' });
 
