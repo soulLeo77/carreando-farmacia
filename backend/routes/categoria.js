@@ -1,10 +1,9 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
-const {  body, validationResult } = require('express-validator');
 const db = require('../connection/db');
 
-router('/', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const [rows] = await db.query('SELECT * FROM categoria');
         res.json(rows);
@@ -14,7 +13,7 @@ router('/', async (req, res) => {
     }
 });
 
-router('/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id;
     try {
         const [rows] = await db.query(
