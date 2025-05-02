@@ -5,7 +5,9 @@ const db = require('../connection/db');
 
 router.get('/', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM producto');
+        const [rows] = await db.query(
+            'SELECT p.*, c.nombre_categoria FROM producto p JOIN categoria c ON p.id_categoria = c.id_categoria'
+        );
         res.json(rows);
     } catch (error) {
         console.error(error);
@@ -17,7 +19,8 @@ router.get('/:id', async (req, res) => {
     const id = req.params.id;
     try {
         const [rows] = await db.query(
-            'SELECT * FROM producto WHERE id_producto = ?', [id]
+            'SELECT p.*, c.nombre_categoria FROM producto p JOIN categoria c ON p.id_categoria = c.id_categoria WHERE id_producto = ?',
+            [id]
         );
         if (rows.length === 0) return res.status(404).json({ error: 'Producto no encontrado' });
         res.status(200).json(rows[0]);
@@ -95,6 +98,14 @@ router.patch('/:id',
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
     try {
+        // Verificar si el producto está referenciado en venta_detalle
+        const [ventas] = await db.query(
+            'SELECT id_det_venta FROM venta_detalle WHERE id_producto = ?', [id]
+        );
+        if (ventas.length > 0) {
+            return res.status(400).json({ error: 'No se puede eliminar: el producto está asociado a ventas' });
+        }
+
         const [result] = await db.query(
             'DELETE FROM producto WHERE id_producto = ?', [id]
         );

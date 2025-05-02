@@ -82,14 +82,22 @@ router.patch('/:id',
 router.delete('/:id', async (req, res) => {
     const id = req.params.id;
     try {
+        // Check for dependent products
+        const [products] = await db.query(
+            'SELECT id_producto FROM producto WHERE id_categoria = ?', [id]
+        );
+        if (products.length > 0) {
+            return res.status(400).json({ error: 'No se puede eliminar: la categoría está asociada a productos' });
+        }
+
         const [result] = await db.query(
             'DELETE FROM categoria WHERE id_categoria = ?', [id]
         );
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'Categoria no encontrada'});
-        res.status(200).json({ mensaje: 'Categoria eliminada'});
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Categoria no encontrada' });
+        res.status(200).json({ mensaje: 'Categoria eliminada' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al eliminar categoria' });
+        res.status(500).json({ error: 'Error al eliminar categoría' });
     }
 });
 
