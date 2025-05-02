@@ -1,0 +1,113 @@
+-- Crear tabla categoria
+CREATE TABLE categoria (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_categoria VARCHAR(100) NOT NULL
+);
+
+-- Crear tabla producto
+CREATE TABLE producto (
+    id_producto INT AUTO_INCREMENT PRIMARY KEY,
+    id_categoria INT NOT NULL,
+    nombre_producto VARCHAR(100) NOT NULL,
+    stock INT DEFAULT 0,
+    precio_unitario DECIMAL(10, 2) DEFAULT 0,
+    congelado BOOLEAN DEFAULT FALSE,
+    activo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+);
+
+-- Crear tabla venta
+CREATE TABLE venta (
+    id_venta INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_venta DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Crear tabla venta_detalle
+CREATE TABLE venta_detalle (
+    id_det_venta INT AUTO_INCREMENT PRIMARY KEY,
+    id_venta INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    valor_venta DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (id_venta) REFERENCES venta(id_venta),
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+);
+
+INSERT INTO categoria (nombre_categoria) VALUES 
+('Medicamentos'),
+('Cuidado Personal'),
+('Vitaminas y Suplementos'),
+('Primeros Auxilios'),
+('Maternidad y Bebé');
+
+INSERT INTO producto (id_categoria, nombre_producto, stock, precio_unitario, congelado, activo) VALUES
+-- Medicamentos
+(1, 'Paracetamol 500mg', 100, 5.50, FALSE, TRUE),
+(1, 'Ibuprofeno 400mg', 80, 7.20, FALSE, TRUE),
+(1, 'Amoxicilina 250mg', 50, 12.80, FALSE, TRUE),
+(1, 'Omeprazol 20mg', 60, 9.75, FALSE, TRUE),
+
+-- Cuidado Personal
+(2, 'Jabón Antibacterial', 120, 3.25, FALSE, TRUE),
+(2, 'Shampoo Anticaspa', 90, 8.40, FALSE, TRUE),
+(2, 'Crema Dental', 200, 4.50, FALSE, TRUE),
+(2, 'Desodorante Roll-On', 150, 6.80, FALSE, TRUE),
+
+-- Vitaminas y Suplementos
+(3, 'Vitamina C 1000mg', 70, 15.90, FALSE, TRUE),
+(3, 'Multivitamínico Adulto', 65, 22.50, FALSE, TRUE),
+(3, 'Omega 3', 40, 18.75, FALSE, TRUE),
+(3, 'Calcio + Vitamina D', 55, 14.20, FALSE, TRUE),
+
+-- Primeros Auxilios
+(4, 'Curitas', 180, 2.30, FALSE, TRUE),
+(4, 'Vendaje Elástico', 75, 5.60, FALSE, TRUE),
+(4, 'Alcohol Antiséptico', 110, 3.90, FALSE, TRUE),
+(4, 'Termómetro Digital', 30, 25.00, FALSE, TRUE),
+
+-- Maternidad y Bebé
+(5, 'Pañales Talla M', 200, 18.90, FALSE, TRUE),
+(5, 'Toallitas Húmedas', 150, 7.50, FALSE, TRUE),
+(5, 'Leche en Polvo Etapa 1', 45, 32.00, FALSE, TRUE),
+(5, 'Chupón de Bebé', 85, 6.25, FALSE, TRUE);
+
+-- Venta 1
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-15 09:30:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(1, 1, 2, 11.00),  -- 2 Paracetamol
+(1, 6, 1, 8.40);    -- 1 Shampoo Anticaspa
+
+-- Venta 2
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-15 11:45:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(2, 3, 1, 12.80),   -- 1 Amoxicilina
+(2, 9, 1, 15.90),   -- 1 Vitamina C
+(2, 17, 1, 7.50);   -- 1 Toallitas Húmedas
+
+-- Venta 3
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-16 14:20:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(3, 5, 3, 9.75),    -- 3 Jabón Antibacterial
+(3, 7, 2, 9.00),    -- 2 Crema Dental
+(3, 13, 1, 5.60);   -- 1 Vendaje Elástico
+
+-- Venta 4
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-16 16:10:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(4, 2, 1, 7.20),    -- 1 Ibuprofeno
+(4, 16, 2, 37.80),  -- 2 Pañales Talla M
+(4, 18, 1, 32.00);  -- 1 Leche en Polvo
+
+-- Venta 5
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-17 10:15:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(5, 4, 1, 9.75),    -- 1 Omeprazol
+(5, 10, 1, 22.50),  -- 1 Multivitamínico
+(5, 14, 2, 7.80);   -- 2 Alcohol Antiséptico
+
+-- Venta 6
+INSERT INTO venta (fecha_venta) VALUES ('2023-11-17 18:30:00');
+INSERT INTO venta_detalle (id_venta, id_producto, cantidad, valor_venta) VALUES
+(6, 8, 1, 6.80),    -- 1 Desodorante
+(6, 11, 1, 18.75),  -- 1 Omega 3
+(6, 15, 1, 25.00);  -- 1 Termómetro Digital
