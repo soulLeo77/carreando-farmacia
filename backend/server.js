@@ -12,7 +12,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/categorias', categoriasRouter);
 app.use('/productos', productosRouter);
 app.use('/ventas', ventasRouter);
-app.use('/detalleVenta', detalleVentaRouter);
+app.use('/venta_detalle', detalleVentaRouter);
 
 const PORT = process.env.LISENER_PORT || 3000;
 app.listen(PORT, () => {
